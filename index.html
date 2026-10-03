@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>合成艾达</title>
+<title>合成艾达 · 果汁渐变版</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
   body {
@@ -180,7 +180,7 @@
   <div class="modal" id="uploadModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🎨 自定义图片</h3>
+        <h3>🎨 自定义图片 <span style="font-size:11px;color:#c98f8f;font-weight:400;">(果汁色板 v7)</span></h3>
         <button class="close-btn" id="closeModalBtn">✕</button>
       </div>
       <p style="font-size:11px; color:#bb9090; margin-bottom:12px; line-height:1.5;">
@@ -202,6 +202,18 @@
   // 必须在此处提前声明: startup 流程会先调用一次 resizeCanvas()。
   let ACTUAL_SCALE = 0;
   let HD_TIER_INDEX = 0;
+
+  /* =========================================================
+     C. 果汁配色: Hello Kitty 红(单色统一)
+     ========================================================= */
+  const JUICE_COLORS = [
+    '#e60012',  // Hello Kitty 标志红(蝴蝶结红)
+  ];
+
+  function juiceColor() {
+    return JUICE_COLORS[0];
+  }
+
 
   /* =========================================================
      A. 音效引擎 (Web Audio 实时合成, 不含任何音频文件)
@@ -812,9 +824,9 @@
     SFX.pop(a.level);
     const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, newLevel = a.level + 1;
     spawnParticles(mx, my, LEVELS[a.level].color, 10);
-    rings.push({ x: mx, y: my, r: a.r * 0.7, maxR: a.r * 2.2, life: 1 });
+    rings.push({ x: mx, y: my, r: a.r * 0.7, maxR: a.r * 2.2, life: 1, red: juiceColor(a.level + 0.5) });
     if (newLevel >= LEVELS.length) {
-      score += 100; rings.push({ x: mx, y: my, r: 20, maxR: 190, life: 1 }); spawnParticles(mx, my, '#ff5252', 28);
+      score += 100; rings.push({ x: mx, y: my, r: 20, maxR: 190, life: 1, red: juiceColor(11) }); spawnParticles(mx, my, 10, 28);
       SFX.big();
     } else {
       score += newLevel + 1;
@@ -823,9 +835,11 @@
     updateScoreUI();
   }
   function spawnParticles(x, y, color, count) {
+    // 统一走红色系: 传入的是等级, 由此取渐变红
+    color = juiceColor(color);
     for (let i = 0; i < count; i++) {
       const ang = Math.random() * Math.PI * 2, sp = 1 + Math.random() * 4;
-      particles.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.2, life: 1, decay: 0.018 + Math.random() * 0.03, r: 2 + Math.random() * 4, color });
+      particles.push({ x, y, vx: Math.cos(ang) * sp * 0.9, vy: Math.sin(ang) * sp * 0.9 - 1.1, life: 1, decay: 0.016 + Math.random() * 0.026, r: 3 + Math.random() * 5, color });
     }
   }
   function updateEffects() {
@@ -965,12 +979,12 @@
   function drawEffects() {
     for (const r of rings) {
       ctx.globalAlpha = Math.max(0, r.life) * 0.7;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = r.red || '#ffffff';
       ctx.lineWidth = 5 * r.life;
       ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke();
     }
     for (const p of particles) {
-      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.globalAlpha = p.life > 0.35 ? 1 : Math.max(0, p.life / 0.35);
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2); ctx.fill();
     }
